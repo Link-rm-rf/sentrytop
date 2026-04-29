@@ -15,8 +15,8 @@ This is a functional security tool that monitors the live state of the Linux net
 ---
 
 ## Architecture
-* **Sensor (C):** A high-performance collector that polls /proc/net/tcp and maps socket inodes via /proc/[pid]/fd [cite: 49-67].
-* **Correlator (Java 21):** A virtual-thread powered correlation engine that ingests JSON telemetry and evaluates threats against a localized database [cite: 173-185].
+* **Sensor (C):** A high-performance collector that polls /proc/net/tcp and maps socket inodes via /proc/[pid]/fd.
+* **Correlator (Java 21):** A virtual-thread powered correlation engine that ingests JSON telemetry and evaluates threats against a localized database .
 
 ## Build Requirements
 Tested on Debian/Ubuntu and WSL2.
@@ -32,5 +32,5 @@ Tested on Debian/Ubuntu and WSL2.
 
 ## Security & Performance
 * **Zero Cloud Dependency:** Operates entirely offline for maximum privacy.
-* **Minimal Overhead:** Optimized C collector and Java Loom virtual threads ensure near real-time processing [cite: 121-123].
-* **Least Privilege:** Sensor runs as ROOT while the engine runs as USER[cite: 120].
+* **Minimal Overhead:** Optimized C collector and Java Loom virtual threads ensure near real-time processing.
+* **Least Privilege:** Sensor runs as ROOT while the engine runs as USER.
