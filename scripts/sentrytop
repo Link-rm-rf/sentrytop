@@ -1,0 +1,4 @@
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+make -C $DIR/collector
+sudo $DIR/collector/sentry_collector | java -cp $DIR/engine/target/classes com.sentrytop.EngineMain
