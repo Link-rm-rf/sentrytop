@@ -47,9 +47,9 @@ pip3 install -r requirements.txt || pip3 install rich psutil
 
 echo -e "\n${GREEN}[3/5] Setting up environment...${NC}"
 # Assuming the user ran curl | bash, we need to clone the repo if not in it
-if [ ! -f "sentrytop_cli.py" ]; then
+if [ ! -f "ui/sentrytop_cli.py" ]; then
     echo "Cloning repository to /opt/sentrytop..."
-    git clone https://github.com/Link-rm-rf/sentrytop.git /opt/sentrytop || echo "Directory exists, pulling latest..." && cd /opt/sentrytop && git pull
+    git clone https://github.com/Link-rm-rf/sentrytop.git /opt/sentrytop || (cd /opt/sentrytop && git pull)
 else
     echo "Running from local directory. Copying files to /opt/sentrytop..."
     mkdir -p /opt/sentrytop
@@ -58,10 +58,10 @@ fi
 
 cd /opt/sentrytop
 chmod +x scripts/sentrytop
-chmod +x sentrytop_cli.py
+chmod +x ui/sentrytop_cli.py
 
 echo -e "\n${GREEN}[4/5] Creating global symlinks...${NC}"
-ln -sf /opt/sentrytop/sentrytop_cli.py /usr/local/bin/sentrytop
+ln -sf /opt/sentrytop/ui/sentrytop_cli.py /usr/local/bin/sentrytop
 
 echo -e "\n${GREEN}[5/5] Configuring systemd service...${NC}"
 cat <<EOF > /etc/systemd/system/sentrytop.service

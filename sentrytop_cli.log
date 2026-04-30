@@ -1,0 +1,4 @@
+2026-04-30 15:33:43,551 [INFO] [MainThread] SentryTop CLI starting sequence initialized.
+2026-04-30 15:33:44,039 [INFO] [MainThread] DataPipeline initialized. Mock mode: True
+2026-04-30 15:33:44,039 [INFO] [MainThread] Initializing DataPipeline in MOCK mode.
+2026-04-30 15:33:44,039 [INFO] [InputThread] InputController thread started.

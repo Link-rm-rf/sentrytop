@@ -65,7 +65,7 @@ CONFIG: Dict[str, Any] = {
         "version": "v1.1.0"
     },
     "paths": {
-        "engine_script": "./scripts/sentrytop",
+        "engine_script": "../scripts/sentrytop",
         "log_file": "sentrytop_cli.log"
     },
     "mock": {
