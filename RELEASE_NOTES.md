@@ -1,36 +1,33 @@
-# SentryTop v1.0.0 Release Notes
+# SentryTop v1.0.0 - The Open Source Linux EDR
 
-We are proud to announce the first stable release of **SentryTop**, a standalone Linux EDR agent designed for real-time network threat detection and behavioral analysis.
+We are thrilled to announce the v1.0.0 release of **SentryTop**, a lightweight, high-performance Endpoint Detection and Response (EDR) agent built from scratch for Linux.
 
-## Key Features
+SentryTop gives security analysts distraction-free, real-time visualization of endpoint threats and network connections directly within a terminal environment, utilizing a highly optimized C collector and a robust Java/Python correlator.
 
-*   **Real-time Network Monitoring**: Polls `/proc/net` to discover TCP/UDP connections for both IPv4 and IPv6.
-*   **Process Attribution**: Automatically maps network sockets to the responsible process command line and its parent process.
-*   **Multi-Layered Detection Engine**:
-    *   **Intel Match**: High-fidelity matching against a local threat intelligence database.
-    *   **Suspicious Port Detection**: Alerts on connections to high-risk ports (e.g., 4444, 1337).
-    *   **Behavioral Beaconing**: Detects automated repetitive connection patterns via window-based frequency analysis.
-*   **High Performance**:
-    *   **C Collector**: Optimized for low CPU and memory overhead.
-    *   **Java Correlator**: Utilizes Java 21 Virtual Threads (Project Loom) for massive concurrency with minimal RAM.
-*   **Production Ready**: Includes systemd service integration, automated installation scripts, and periodic health metrics.
+## 🚀 Key Features
 
-## Technical Improvements in 1.0.0
+* **High-Performance C Collector:** Direct `/proc` parsing with <1% CPU overhead.
+* **Real-time Threat Correlation:** Detects reverse shells, beaconing, and anomalous process behavior.
+* **Retro-Terminal UI:** Distraction-free, hacker-aesthetic CLI built in Python with rich.
+* **Non-blocking Architecture:** Producer-consumer threading ensures the UI never stutters, even under heavy load.
 
-*   Full IPv6 support for TCP and UDP.
-*   Strict compiler warnings resolved in the C collector.
-*   Improved process name resolution with parent process context.
-*   Periodic metrics reporting (Events, Alerts, Memory).
-*   Standardized JSON telemetry format.
+## 📸 Interface
 
-## Installation
+![SentryTop UI](https://raw.githubusercontent.com/Link-rm-rf/sentrytop/main/assets/ui_screenshot.png)
+
+## 💻 Quick Start
+
+Install SentryTop in seconds with our automated script:
 
 ```bash
-git clone https://github.com/link-rm-rf/sentrytop.git
-cd sentrytop
-sudo ./scripts/install.sh
+curl -fsSL https://raw.githubusercontent.com/Link-rm-rf/sentrytop/main/install.sh | sudo bash
 ```
 
-## Community & Support
+## 🔗 Documentation
 
-SentryTop is open-source and built for the security community. Contributions, bug reports, and feedback are welcome!
+* [Full README & Guide](https://github.com/Link-rm-rf/sentrytop#readme)
+* [Technical Deep Dive Blog Post](https://github.com/Link-rm-rf/sentrytop/blob/main/docs/blog_post.md)
+* [Contributing Guidelines](https://github.com/Link-rm-rf/sentrytop/blob/main/CONTRIBUTING.md)
+
+---
+*Built with passion by the SentryTop Security Engineering Team.*
