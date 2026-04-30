@@ -2,3 +2,6 @@
 2026-04-30 15:33:44,039 [INFO] [MainThread] DataPipeline initialized. Mock mode: True
 2026-04-30 15:33:44,039 [INFO] [MainThread] Initializing DataPipeline in MOCK mode.
 2026-04-30 15:33:44,039 [INFO] [InputThread] InputController thread started.
+2026-04-30 16:37:41,417 [INFO] [MainThread] SentryTop CLI starting sequence initialized.
+2026-04-30 16:37:41,905 [INFO] [MainThread] DataPipeline initialized. Mock mode: False
+2026-04-30 16:37:41,906 [CRITICAL] [MainThread] Pipeline initiation failed: [Errno 2] No such file or directory: '../scripts/sentrytop'
