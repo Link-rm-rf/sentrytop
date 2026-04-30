@@ -110,8 +110,12 @@ public class ThreatAnalyzer {
 
     private boolean checkRateLimit(String key) {
         AtomicInteger count = alertCounts.computeIfAbsent(key, k -> new AtomicInteger(0));
-        if (count.incrementAndGet() > config.rateLimit) {
-            logger.warning("Rate limit exceeded for " + key + ". Suppressing further alerts.");
+        int currentCount = count.incrementAndGet();
+        if (currentCount > config.rateLimit) {
+            // Only log the warning exactly ONCE when the limit is hit
+            if (currentCount == config.rateLimit + 1) {
+                logger.warning("Rate limit exceeded for " + key + ". Suppressing further alerts.");
+            }
             return true;
         }
         return false;

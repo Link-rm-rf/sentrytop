@@ -61,16 +61,24 @@ CONFIG: Dict[str, Any] = {
 
 # Absolute path resolution
 def get_project_root() -> str:
-    # If installed in /opt
-    if os.path.exists("/opt/sentrytop"):
+    """Dynamically resolves the project root based on script location or environment."""
+    # First, try to use the location of this script
+    script_path = os.path.abspath(__file__)
+    # If we are in ui/sentrytop_cli.py, root is two levels up
+    root = os.path.dirname(os.path.dirname(script_path))
+    
+    if os.path.exists(os.path.join(root, "scripts", "sentrytop")):
+        return root
+        
+    # Fallback to /opt if it exists and looks like ours
+    if os.path.exists("/opt/sentrytop/scripts/sentrytop"):
         return "/opt/sentrytop"
-    # Fallback to local script directory
-    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+    return root
 
 def get_log_path() -> str:
     root = get_project_root()
-    log_file = os.path.join(root, "sentrytop_cli.log")
-    return log_file
+    return os.path.join(root, "sentrytop_cli.log")
 
 logging.basicConfig(filename=get_log_path(), level=logging.DEBUG, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -85,12 +93,19 @@ class CLIState:
     running: bool = True
     start_time: float = field(default_factory=time.time)
     log_lock: threading.Lock = field(default_factory=threading.Lock)
+    footer_progress: Progress = field(default=None)
 
 class SentryTopUI:
     def __init__(self, console: Console, state: CLIState) -> None:
         self.console = console
         self.state = state
         self.layout = self._create_layout()
+        self.state.footer_progress = Progress(
+            TextColumn("[progress.description]{task.description}"), 
+            BarColumn(bar_width=30, complete_style=CONFIG["colors"]["accent"]), 
+            console=self.console
+        )
+        self.state.footer_progress.add_task("Core Heartbeat", total=100)
 
     def _create_layout(self) -> Layout:
         layout = Layout()
@@ -141,9 +156,12 @@ class SentryTopUI:
         footer_grid.add_column(justify="right", ratio=1)
         uptime = int(time.time() - self.state.start_time)
         metrics = Text(f"Uptime: {uptime}s | SYS CPU: {cpu}% | SYS MEM: {mem}%", style=CONFIG["colors"]["accent"])
-        progress = Progress(TextColumn("[progress.description]{task.description}"), BarColumn(bar_width=30, complete_style=CONFIG["colors"]["accent"]), console=self.console)
-        progress.add_task("Core Heartbeat", total=100, completed=(time.time() * 25) % 100)
-        footer_grid.add_row(metrics, progress)
+        
+        # Update existing progress task instead of recreating
+        task_id = self.state.footer_progress.task_ids[0]
+        self.state.footer_progress.update(task_id, completed=(time.time() * 25) % 100)
+        
+        footer_grid.add_row(metrics, self.state.footer_progress)
         self.layout["footer"].update(Panel(footer_grid, border_style=CONFIG["colors"]["primary"], box=box.SQUARE))
 
 class DataPipeline:

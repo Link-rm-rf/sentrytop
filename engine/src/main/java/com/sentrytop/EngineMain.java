@@ -68,38 +68,60 @@ public class EngineMain {
     }
 
     private static Config loadConfig() {
+        Config config = new Config();
+        config.pollingIntervalMs = 1000;
+        config.intelDbPath = "assets/intel_db.json";
+        config.rateLimit = 5;
+        config.suspiciousPorts = List.of(4444, 1337);
+
         try {
             File file = findFile("assets/config.json");
-            return mapper.readValue(file, Config.class);
+            if (file.exists()) {
+                return mapper.readValue(file, Config.class);
+            } else {
+                logger.warning("config.json not found at " + file.getAbsolutePath() + ", using defaults.");
+            }
         } catch (Exception e) {
-            logger.warning("Could not load config.json, using defaults.");
-            Config config = new Config();
-            config.pollingIntervalMs = 1000;
-            config.intelDbPath = "assets/intel_db.json";
-            config.rateLimit = 5;
-            config.suspiciousPorts = List.of(4444, 1337);
-            return config;
+            logger.warning("Error loading config.json: " + e.getMessage() + ". Using defaults.");
         }
+        return config;
     }
 
     private static Map<String, IntelEntry> loadIntelDb(String path) {
         Map<String, IntelEntry> db = new HashMap<>();
         try {
             File file = findFile(path);
-            List<IntelEntry> entries = mapper.readValue(file, mapper.getTypeFactory().constructCollectionType(List.class, IntelEntry.class));
-            for (IntelEntry entry : entries) {
-                db.put(entry.ip, entry);
+            if (file.exists()) {
+                List<IntelEntry> entries = mapper.readValue(file, mapper.getTypeFactory().constructCollectionType(List.class, IntelEntry.class));
+                for (IntelEntry entry : entries) {
+                    db.put(entry.ip, entry);
+                }
+                logger.info("Loaded " + db.size() + " intel entries from " + file.getAbsolutePath());
+            } else {
+                logger.severe("Intel DB not found at " + file.getAbsolutePath());
             }
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Could not load intel DB from " + path, e);
+            logger.log(Level.SEVERE, "Could not load intel DB: " + e.getMessage(), e);
         }
         return db;
     }
 
     private static File findFile(String path) {
+        // Try CWD
         File file = new File(path);
-        if (!file.exists()) file = new File("../" + path);
-        return file;
+        if (file.exists()) return file;
+
+        // Try relative to JAR location if possible, or just check parent
+        String root = System.getProperty("user.dir");
+        file = new File(root, path);
+        if (file.exists()) return file;
+
+        // Fallback for /opt installation
+        file = new File("/opt/sentrytop", path);
+        if (file.exists()) return file;
+
+        // Last resort fallback
+        return new File(path);
     }
 
     private static void setupLogging() {
