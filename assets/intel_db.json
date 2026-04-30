@@ -1,0 +1,5 @@
+[
+  {"ip": "45.33.32.156", "confidence": "high", "category": "C2"},
+  {"ip": "185.199.108.153", "confidence": "medium", "category": "Botnet"},
+  {"ip": "8.8.8.8", "confidence": "low", "category": "DNS"}
+]

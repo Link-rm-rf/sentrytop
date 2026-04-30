@@ -1,0 +1,7 @@
+{
+  "polling_interval_ms": 1000,
+  "intel_db_path": "assets/intel_db.json",
+  "rate_limit": 5,
+  "log_level": "INFO",
+  "suspicious_ports": [4444, 1337, 31337]
+}

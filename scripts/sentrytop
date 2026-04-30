@@ -1,4 +1,14 @@
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-make -C $DIR/collector
-sudo $DIR/collector/sentry_collector | java -cp $DIR/engine/target/classes com.sentrytop.EngineMain
+CONFIG="$DIR/assets/config.json"
+INTERVAL=$(grep "polling_interval_ms" "$CONFIG" 2>/dev/null | sed 's/[^0-9]//g' | grep -v "^$" || echo 1000)
+INTERVAL_SEC=$((INTERVAL / 1000))
+[ $INTERVAL_SEC -lt 1 ] && INTERVAL_SEC=1
+
+SUDO_CMD="sudo"
+if [ "$NOSUDO" == "1" ]; then
+    SUDO_CMD=""
+fi
+
+make -s -C "$DIR/collector"
+$SUDO_CMD "$DIR/collector/sentry_collector" $INTERVAL_SEC | java -Duser.dir="$DIR" -cp "$DIR/engine/target/sentry-engine-1.0.jar" com.sentrytop.EngineMain
