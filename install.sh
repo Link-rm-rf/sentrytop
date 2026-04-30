@@ -42,7 +42,12 @@ done
 
 # Python requirements
 echo -e "\n${GREEN}[2/3] Installing Python TUI dependencies...${NC}"
-pip3 install -r requirements.txt --quiet || pip3 install rich psutil --quiet
+if command_exists apt-get; then
+    echo "Using apt-get for system-safe Python packages..."
+    apt-get install -y python3-rich python3-psutil || pip3 install rich psutil --break-system-packages --quiet
+else
+    pip3 install -r requirements.txt --quiet || pip3 install rich psutil --quiet
+fi
 
 echo -e "\n${GREEN}[3/3] Setting up environment...${NC}"
 # Fix permissions
