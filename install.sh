@@ -19,6 +19,11 @@ apt-get install -y python3-venv python3-dev gcc make openjdk-21-jdk maven
 
 # Step 2: Create app directory
 echo "[2/5] Creating SentryTop directory..."
+# Gracefully stop existing instances to avoid "Text file busy"
+systemctl stop sentrytop 2>/dev/null || true
+pkill -f sentry_collector 2>/dev/null || true
+pkill -f sentrytop_cli.py 2>/dev/null || true
+
 mkdir -p /opt/sentrytop
 cp -r . /opt/sentrytop/
 cd /opt/sentrytop

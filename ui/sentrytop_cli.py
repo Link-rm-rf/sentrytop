@@ -66,7 +66,7 @@ CONFIG: Dict[str, Any] = {
     },
     "paths": {
         "engine_script": "../scripts/sentrytop",
-        "log_file": "sentrytop_cli.log"
+        "log_file": "/opt/sentrytop/sentrytop_cli.log"
     },
     "mock": {
         "threat_rate": 0.15,
@@ -87,9 +87,21 @@ CONFIG: Dict[str, Any] = {
     "safe_keywords": ["New safe connection"]
 }
 
+# Define log path with fallback logic
+def get_log_path() -> str:
+    fixed_path = "/opt/sentrytop/sentrytop_cli.log"
+    try:
+        # Check if we can write to /opt/sentrytop
+        if os.access(os.path.dirname(fixed_path), os.W_OK):
+            return fixed_path
+    except:
+        pass
+    # Fallback to current directory of the script
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "sentrytop_cli.log")
+
 # Logger setup for background audit
 logging.basicConfig(
-    filename=CONFIG["paths"]["log_file"],
+    filename=get_log_path(),
     level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] [%(threadName)s] %(message)s"
 )
@@ -260,13 +272,16 @@ class DataPipeline:
             return
 
         script_dir = os.path.dirname(os.path.abspath(__file__))
+        # Resolve absolute path to the engine script
+        engine_path = os.path.abspath(os.path.join(script_dir, CONFIG["paths"]["engine_script"]))
+        
         env = os.environ.copy()
         if os.getuid() == 0:
             env["NOSUDO"] = "1"
 
         try:
             self.process = subprocess.Popen(
-                [CONFIG["paths"]["engine_script"]],
+                [engine_path],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
@@ -275,13 +290,13 @@ class DataPipeline:
                 env=env,
                 errors='replace' # Handle encoding issues safely
             )
-            logger.info(f"Subprocess started with PID: {self.process.pid}")
+            logger.info(f"Subprocess started with PID: {self.process.pid} at {engine_path}")
             # Dedicated threads for stdout/stderr to prevent pipe blocking
             threading.Thread(target=self._pipe_reader, args=(self.process.stdout, "stdout"), daemon=True, name="StdOutThread").start()
             threading.Thread(target=self._pipe_reader, args=(self.process.stderr, "stderr"), daemon=True, name="StdErrThread").start()
         except Exception as e:
             logger.critical(f"Pipeline initiation failed: {e}")
-            raise RuntimeError(f"Could not execute {CONFIG['paths']['engine_script']}: {e}")
+            raise RuntimeError(f"Could not execute {engine_path}: {e}")
 
     def _pipe_reader(self, pipe: Any, stream_name: str) -> None:
         """
