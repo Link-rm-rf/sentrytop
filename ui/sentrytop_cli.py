@@ -218,7 +218,7 @@ class SentryTopUI:
         footer_grid.add_column(justify="right", ratio=1)
         
         uptime = int(time.time() - self.state.start_time)
-        metrics = Text(f"Uptime: {uptime}s | CPU: {cpu}% | MEM: {mem}%", style=CONFIG["colors"]["accent"])
+        metrics = Text(f"Uptime: {uptime}s | SYS CPU: {cpu}% | SYS MEM: {mem}%", style=CONFIG["colors"]["accent"])
         
         progress = Progress(
             TextColumn("[progress.description]{task.description}"),

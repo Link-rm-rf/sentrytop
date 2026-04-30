@@ -15,7 +15,7 @@ fi
 echo "[1/5] Checking dependencies..."
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
-apt-get install -y python3-venv python3-dev gcc make
+apt-get install -y python3-venv python3-dev gcc make openjdk-21-jdk maven
 
 # Step 2: Create app directory
 echo "[2/5] Creating SentryTop directory..."
@@ -23,9 +23,20 @@ mkdir -p /opt/sentrytop
 cp -r . /opt/sentrytop/
 cd /opt/sentrytop
 
+# Compile Collector
+echo "Building C Collector sensor..."
+(cd collector && make clean && make all)
+
+# Build Java Engine
+if [ -f "engine/pom.xml" ]; then
+    echo "Building Java Correlator engine..."
+    (cd engine && mvn clean package -DskipTests)
+fi
+
 # Fix permissions
 chmod +x scripts/sentrytop
 chmod +x ui/sentrytop_cli.py
+chmod +x collector/sentry_collector
 
 # Step 3: Create virtual environment (VENV - this is key!)
 echo "[3/5] Setting up Python virtual environment..."

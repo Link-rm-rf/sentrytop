@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
 
-# Mock java correlator telemetry
-echo -e "\x1b[32mNew safe connection: 192.168.1.10:53 (DNS)\x1b[0m"
-sleep 0.5
-echo -e "\x1b[31m[WARN] SUSPICIOUS PROCESS: /tmp/.hidden_shell (Parent: nginx)\x1b[0m"
-sleep 0.5
-echo "   └── Detail: Process mapping established for PID 1337"
-sleep 0.5
-echo -e "\x1b[31m[CRIT] BEACON DETECTED: Unknown Remote Endpoint 45.33.32.156:443\x1b[0m"
+# SentryTop Data Pipeline
+# Collector (C) -> Correlator (Java) -> TUI (Python)
 
-# Keep pipe open so CLI doesn't exit
-while true; do
-  sleep 1
-done
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+COLLECTOR_BIN="$PROJECT_ROOT/collector/sentry_collector"
+ENGINE_JAR="$PROJECT_ROOT/engine/target/sentry-engine-1.0.jar"
+ASSETS_DIR="$PROJECT_ROOT/assets"
+
+# Build if missing
+if [ ! -f "$COLLECTOR_BIN" ]; then
+    echo "[!] Collector binary not found. Building..."
+    (cd "$PROJECT_ROOT/collector" && make)
+fi
+
+# Run the pipeline with line buffering to ensure real-time UI updates
+cd "$PROJECT_ROOT"
+$COLLECTOR_BIN 1 | stdbuf -oL java -jar "$ENGINE_JAR"
