@@ -1,6 +1,6 @@
 # SentryTop v1.0.0 Release Notes
 
-We are proud to announce the first stable release of **SentryTop**, a standalone Linux EDR agent designed for real-time network threat detection and behavioral analysis.
+I'm proud to announce the first stable release of **SentryTop**, a standalone Linux EDR agent designed for real-time network threat detection and behavioral analysis.
 
 ## Key Features
 
