@@ -39,14 +39,23 @@ chmod +x "$INSTALL_DIR/scripts/sentrytop"
 chmod +x "$INSTALL_DIR/ui/sentrytop_cli.py"
 chmod +x "$INSTALL_DIR/collector/sentry_collector"
 
-# Ensure log exists and is writable by root
+# Ensure log and FIFO exist and are writable
 touch "$INSTALL_DIR/sentrytop_cli.log"
 chmod 644 "$INSTALL_DIR/sentrytop_cli.log"
+
+# Create named pipe for JSON alerts
+rm -f "$INSTALL_DIR/alerts.fifo"
+mkfifo "$INSTALL_DIR/alerts.fifo"
+chmod 666 "$INSTALL_DIR/alerts.fifo"
+
+# Ensure SQLite DB exists and is writable
+touch "$INSTALL_DIR/alerts.db"
+chmod 666 "$INSTALL_DIR/alerts.db"
 
 echo "[3/4] Setting up Python virtual environment..."
 python3 -m venv "$INSTALL_DIR/venv"
 "$INSTALL_DIR/venv/bin/pip" install --upgrade pip --quiet
-"$INSTALL_DIR/venv/bin/pip" install rich psutil --quiet
+"$INSTALL_DIR/venv/bin/pip" install rich psutil blessed --quiet
 
 echo "[4/4] Creating command wrapper..."
 rm -f "$BIN_PATH"
@@ -54,7 +63,7 @@ cat << 'EOF' > "$BIN_PATH"
 #!/bin/bash
 export NOSUDO=1
 source /opt/sentrytop/venv/bin/activate
-exec python3 /opt/sentrytop/ui/sentrytop_cli.py "$@"
+exec python3 /opt/sentrytop/ui/main.py "$@"
 EOF
 chmod +x "$BIN_PATH"
 

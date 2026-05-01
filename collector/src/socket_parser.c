@@ -86,7 +86,7 @@ void scan_proc_net(const char *path) {
 }
 
 int main(int argc, char *argv[]) {
-    int polling_interval = 1;
+    int polling_interval = 2;
     if (argc > 1) {
         polling_interval = atoi(argv[1]);
         if (polling_interval < 1) polling_interval = 1;

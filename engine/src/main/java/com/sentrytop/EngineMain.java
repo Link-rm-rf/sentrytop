@@ -10,14 +10,14 @@ import java.util.logging.Level;
 public class EngineMain {
     private static final Logger logger = Logger.getLogger(EngineMain.class.getName());
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static final ExecutorService vThreads = Executors.newVirtualThreadPerTaskExecutor();
 
     public static void main(String[] args) {
         setupLogging();
         
         Config config = loadConfig();
-        Map<String, IntelEntry> intelDb = loadIntelDb(config.intelDbPath);
+        IntelDb intelDb = loadIntelDb(config.intelDbPath);
         ThreatAnalyzer analyzer = new ThreatAnalyzer(intelDb, config);
+        AuthLogMonitor authMonitor = new AuthLogMonitor();
 
         System.out.println("SentryTop v1.0.0 | Engine ACTIVE | Mode: Standalone EDR");
         System.out.println("=========================================================");
@@ -29,42 +29,12 @@ public class EngineMain {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                final String payload = line;
-                vThreads.submit(() -> analyzer.analyze(payload));
+                analyzer.analyze(line);
+                authMonitor.check();
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Fatal error in Engine main loop", e);
-        } finally {
-            vThreads.shutdown();
-            try {
-                if (!vThreads.awaitTermination(5, TimeUnit.SECONDS)) {
-                    vThreads.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                vThreads.shutdownNow();
-            }
         }
-    }
-
-    private static void startMetricsMonitor(ThreatAnalyzer analyzer) {
-        vThreads.submit(() -> {
-            while (true) {
-                try {
-                    Thread.sleep(60000);
-                    long events = analyzer.getProcessedEvents();
-                    long alerts = analyzer.getAlertsTriggered();
-                    int connections = analyzer.getSeenConnectionsCount();
-                    long mem = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024;
-                    
-                    logger.info(String.format(
-                        "METRICS: [Events: %d] [Alerts: %d] [Active Conn: %d] [Memory: %dMB]",
-                        events, alerts, connections, mem
-                    ));
-                } catch (InterruptedException e) {
-                    break;
-                }
-            }
-        });
     }
 
     private static Config loadConfig() {
@@ -87,23 +57,22 @@ public class EngineMain {
         return config;
     }
 
-    private static Map<String, IntelEntry> loadIntelDb(String path) {
-        Map<String, IntelEntry> db = new HashMap<>();
+    private static IntelDb loadIntelDb(String path) {
         try {
             File file = findFile(path);
             if (file.exists()) {
-                List<IntelEntry> entries = mapper.readValue(file, mapper.getTypeFactory().constructCollectionType(List.class, IntelEntry.class));
-                for (IntelEntry entry : entries) {
-                    db.put(entry.ip, entry);
-                }
-                logger.info("Loaded " + db.size() + " intel entries from " + file.getAbsolutePath());
+                IntelDb db = mapper.readValue(file, IntelDb.class);
+                int ipCount = db.maliciousIps != null ? db.maliciousIps.size() : 0;
+                int domainCount = db.malwareDomains != null ? db.malwareDomains.size() : 0;
+                logger.info("Loaded " + ipCount + " IPs and " + domainCount + " domains from " + file.getAbsolutePath());
+                return db;
             } else {
                 logger.severe("Intel DB not found at " + file.getAbsolutePath());
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Could not load intel DB: " + e.getMessage(), e);
         }
-        return db;
+        return new IntelDb();
     }
 
     private static File findFile(String path) {
