@@ -16,7 +16,7 @@ BIN_PATH="/usr/local/bin/sentrytop"
 # Cleanup old instances
 systemctl stop sentrytop 2>/dev/null || true
 pkill -f sentry_collector 2>/dev/null || true
-pkill -f sentrytop_cli.py 2>/dev/null || true
+pkill -f "ui/main.py" 2>/dev/null || true
 
 echo "[1/4] Installing system dependencies..."
 apt-get update -qq
@@ -36,7 +36,7 @@ fi
 
 # Permissions
 chmod +x "$INSTALL_DIR/scripts/sentrytop"
-chmod +x "$INSTALL_DIR/ui/sentrytop_cli.py"
+chmod +x "$INSTALL_DIR/ui/main.py"
 chmod +x "$INSTALL_DIR/collector/sentry_collector"
 
 # Ensure log and FIFO exist and are writable

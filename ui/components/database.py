@@ -50,7 +50,8 @@ class Database:
                 conn.commit()
                 conn.close()
             except Exception as e:
-                print(f"DB Error: {e}")
+                from ..utils.logger import logger
+                logger.error(f"Database insert failed: {e}", exc_info=True)
 
     def get_alerts(self, limit=100):
         with self.lock:

@@ -4,23 +4,23 @@ import threading
 import time
 
 class FifoReader:
-    def __init__(self, db, fifo_path="/opt/sentrytop/alerts.fifo"):
+    def __init__(self, db, alert_queue, fifo_path="/opt/sentrytop/alerts.fifo"):
         self.db = db
+        self.alert_queue = alert_queue
         self.fifo_path = fifo_path
         self.running = True
-        self.new_alerts = []
-        self.lock = threading.Lock()
         self.thread = threading.Thread(target=self._read_loop, daemon=True)
         self.thread.start()
 
     def _read_loop(self):
+        from ..utils.logger import logger
         # Create FIFO if it doesn't exist (fallback)
         if not os.path.exists(self.fifo_path):
             try:
                 os.mkfifo(self.fifo_path)
                 os.chmod(self.fifo_path, 0o666)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error(f"Failed to create FIFO at {self.fifo_path}: {e}")
 
         while self.running:
             try:
@@ -31,18 +31,12 @@ class FifoReader:
                         try:
                             alert = json.loads(line)
                             self.db.insert_alert(alert)
-                            with self.lock:
-                                self.new_alerts.append(alert)
+                            self.alert_queue.add(alert)
                         except json.JSONDecodeError:
                             continue
-            except Exception:
+            except Exception as e:
+                logger.error(f"FIFO read error: {e}")
                 time.sleep(1)
-
-    def get_new_alerts(self):
-        with self.lock:
-            alerts = list(self.new_alerts)
-            self.new_alerts.clear()
-            return alerts
 
     def stop(self):
         self.running = False

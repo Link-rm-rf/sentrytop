@@ -18,9 +18,12 @@ class StatsCache:
             try:
                 # Update processes
                 procs = []
-                for p in psutil.process_iter(['pid', 'name', 'username', 'cpu_percent', 'memory_percent', 'ppid']):
+                for p in psutil.process_iter(['pid', 'name', 'username', 'cpu_percent', 'memory_percent', 'ppid', 'exe', 'status']):
                     try:
-                        procs.append(p.info)
+                        info = p.info
+                        if info.get('exe') is None:
+                            info['exe'] = "ACCESS DENIED"
+                        procs.append(info)
                     except (psutil.NoSuchProcess, psutil.AccessDenied):
                         continue
                 
@@ -36,13 +39,14 @@ class StatsCache:
                 with self.lock:
                     self.processes = sorted(procs, key=lambda x: x.get('cpu_percent', 0), reverse=True)
                     self.connections = conns
-                    self.cpu = psutil.cpu_percent()
+                    self.cpu = psutil.cpu_percent(interval=None)
                     self.memory = psutil.virtual_memory().percent
 
             except Exception as e:
-                pass
+                from ..utils.logger import logger
+                logger.error(f"StatsCache update loop error: {e}")
             
-            time.sleep(2)
+            time.sleep(1) # Refresh every 1 second per requirements
 
     def get_stats(self):
         with self.lock:

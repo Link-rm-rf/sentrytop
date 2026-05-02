@@ -1,1 +1,24 @@
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build artifacts
+engine/target/
+collector/sentry_collector
+scripts/sentrytop
+
+# Local data
+alerts.db
+alerts.fifo
+sentrytop_cli.log
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo

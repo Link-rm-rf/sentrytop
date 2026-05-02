@@ -1,8 +1,22 @@
-# SentryTop v1.0.0
+# SENTRYTOP v1.1.0
 
-A lightweight Linux EDR agent for detecting beacons, reverse shells, and exfiltration.
+A high-performance, professional-grade Linux EDR (Endpoint Detection and Response) terminal application. SentryTop provides real-time visibility into process behavior, network connections, and security threats with a retro-styled, production-hardened TUI.
 
-![SentryTop UI](https://raw.githubusercontent.com/Link-rm-rf/sentrytop/main/assets/ui_screenshot.png)
+![SentryTop UI](assets/ui_screenshot.png)
+
+## Core Capabilities
+
+* **Real-time Monitoring:** Live telemetry feed of security alerts (F1).
+* **Process Management:** Interactive inspection and termination of suspicious processes with system protection (F2).
+* **Network Insight:** Deep visibility into active connections with process correlation (F3).
+* **Historical Audit:** Persistent alert logging via SQLite for post-incident analysis (F4).
+
+## Architecture
+
+SentryTop v1.1 follows a modular, thread-safe architecture:
+* **C Collector:** Efficiently gathers raw system telemetry.
+* **Java Engine:** Performs complex correlation and threat detection.
+* **Python TUI:** A unified, non-blocking rendering engine built on the `blessed` library.
 
 ## Installation
 
@@ -17,59 +31,41 @@ sudo ./install.sh
 
 ## Usage
 
-Launch the real-time monitoring interface:
-
 ```bash
 sudo sentrytop
 ```
 
-### Controls
-* **`p`**: Pause/Resume the live feed.
-* **`v`**: Toggle Verbose mode (hide/show safe connections).
-* **`q`**: Exit the program.
+### Global Controls
+* **`F1`**: Switch to Monitor Mode
+* **`F2`**: Switch to Process Manager
+* **`F3`**: Switch to Network Insight
+* **`F4`**: Switch to Alert Logs
+* **`Q`**: Quit Application
+
+### Mode Specific Controls
+
+#### [F1] Monitor
+* **`P`**: Pause/Resume live feed
+* **`C`**: Clear current feed
+
+#### [F2] Process Manager
+* **`J/K`** or **`↑/↓`**: Navigate process list
+* **`K`**: Kill selected process (Requires confirmation)
+* **`R`**: Refresh list
+
+#### [F3] Network Insight
+* **`J/K`** or **`↑/↓`**: Navigate connection list
+
+#### [F4] Alert Logs
+* **`J/K`** or **`↑/↓`**: Navigate logs
+
+## Production Hardening (v1.1)
+
+* **Thread Safety:** Implemented `threading.Lock` across all shared data structures (Database, StatsCache, AlertQueue).
+* **Non-Blocking I/O:** Decoupled input handling and FIFO reading from the rendering loop.
+* **Memory Safety:** Optimized data pipelines to maintain stable memory usage (<50MB).
+* **UI Stability:** Fixed ASCII rendering truncation and screen buffer corruption ("TOR" bug).
+* **System Protection:** Hardened process manager to prevent accidental termination of critical system services (sshd, systemd, etc.).
 
 ---
-
-## Why SentryTop?
-
-SentryTop is built for security engineers who require zero-latency visibility without the overhead of cloud-tethered agents. It combines a high-speed C collector with a Java Virtual Thread correlator to provide actionable telemetry directly in the terminal.
-
-### Feature Comparison
-
-| Feature | SentryTop | Commercial EDRs | OSSEC / Wazuh |
-| :--- | :--- | :--- | :--- |
-| **Footprint** | **< 1.5% CPU, ~48MB RAM** | High (5-15% CPU) | Medium (2-5% CPU) |
-| **Interface** | **Retro-styled TUI** | Web Dashboard | Web Dashboard |
-| **Data Residency** | **100% Offline (Local)** | Cloud-tethered | Client-Server |
-| **Setup Time** | **< 10 seconds** | Days/Weeks | Hours |
-
-## Real-World Use Cases
-
-* **Incident Response Triage:** Rapid visualization of anomalous outbound connections on compromised hosts.
-* **Homelab Monitoring:** Lightweight alerting for personal servers and NAS devices.
-* **Container Security:** Single-point monitoring of host and container network stacks.
-
-## Architecture
-
-```text
-[ Kernel Space ]
-      |
-      v
-[ /proc Filesystem ] <--- [ C Collector (Sensor) ]
-      |                         |
-      | (JSON Telemetry Stream) v
-      |
-[ Java Engine (Correlator) ] <--- [ Intel DB / Config ]
-      |
-      v
-[ Python rich TUI (Renderer) ]
-```
-
-## Threat Detection Logic
-
-1. **Intel Match:** Cross-references destination IPs against known C2 databases.
-2. **Suspicious Ports:** Identifies outbound traffic on high-risk ports (e.g., 4444, 1337).
-3. **Behavioral Analysis:** Detects beaconing patterns common in reverse shells.
-
----
-*SentryTop Security Engineering*
+*SentryTop Security Engineering - 2026*
