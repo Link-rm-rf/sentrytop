@@ -1,0 +1,30 @@
+[package]
+name = "sentrytop-agent"
+version = "0.1.0"
+edition = "2021"
+authors = ["SentryTop Security Engineering"]
+description = "Professional-grade Unified Rust EDR Agent"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.36", features = ["full"] }
+
+# TUI Framework
+ratatui = "0.26"
+crossterm = { version = "0.27", features = ["event-stream"] }
+
+# Telemetry & System Info
+sysinfo = "0.30"
+
+# Database & Serialization
+rusqlite = { version = "0.31", features = ["bundled"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Utilities
+chrono = { version = "0.4", features = ["serde"] }
+anyhow = "1.0"
+log = "0.4"
+env_logger = "0.11"
+futures = "0.3"
+color-eyre = "0.6"

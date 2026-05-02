@@ -1,0 +1,16 @@
+target/
+debug/
+release/
+*.rs.bk
+
+# Local data
+sentrytop.db
+sentrytop.db-journal
+*.log
+*.fifo
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo

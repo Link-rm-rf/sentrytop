@@ -1,73 +1,34 @@
 #!/bin/bash
 set -e
 
-echo "=================================================="
-echo "  SentryTop EDR - Professional Installer"
-echo "=================================================="
+echo "----------------------------------------------------"
+echo "  SENTRYTOP v2.0.0 - Installation Script            "
+echo "  Professional-Grade SOC/EDR Terminal Platform      "
+echo "----------------------------------------------------"
 
-if [ "$EUID" -ne 0 ]; then
-  echo "[!] Please run as root (sudo ./install.sh)"
-  exit 1
+# Check for Rust/Cargo
+if ! command -v cargo &> /dev/null; then
+    echo "[!] Cargo not found. Installing Rust toolchain..."
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    source "$HOME/.cargo/env"
 fi
 
+echo "[1/3] Installing dependencies..."
+sudo apt-get update -qq
+sudo apt-get install -y -qq build-essential libsqlite3-dev
+
+echo "[2/3] Building Unified Rust Agent..."
+cd agent
+cargo build --release
+cd ..
+
+echo "[3/3] Setting up system integration..."
 INSTALL_DIR="/opt/sentrytop"
-BIN_PATH="/usr/local/bin/sentrytop"
+sudo mkdir -p "$INSTALL_DIR"
+sudo cp agent/target/release/sentrytop-agent "$INSTALL_DIR/"
+sudo ln -sf "$INSTALL_DIR/sentrytop-agent" /usr/local/bin/sentrytop
 
-# Cleanup old instances
-systemctl stop sentrytop 2>/dev/null || true
-pkill -f sentry_collector 2>/dev/null || true
-pkill -f "ui/main.py" 2>/dev/null || true
-
-echo "[1/4] Installing system dependencies..."
-apt-get update -qq
-apt-get install -y python3-venv python3-dev gcc make openjdk-21-jdk maven >/dev/null
-
-echo "[2/4] Deploying files to $INSTALL_DIR..."
-# Force remove old files to prevent corruption (like bash wrappers in ui/)
-rm -rf "$INSTALL_DIR"
-mkdir -p "$INSTALL_DIR"
-cp -r . "$INSTALL_DIR/"
-
-# Compile components
-(cd "$INSTALL_DIR/collector" && make clean && make all >/dev/null)
-if [ -f "$INSTALL_DIR/engine/pom.xml" ]; then
-    (cd "$INSTALL_DIR/engine" && mvn clean package -DskipTests >/dev/null)
-fi
-
-# Permissions
-chmod +x "$INSTALL_DIR/scripts/sentrytop"
-chmod +x "$INSTALL_DIR/ui/main.py"
-chmod +x "$INSTALL_DIR/collector/sentry_collector"
-
-# Ensure log and FIFO exist and are writable
-touch "$INSTALL_DIR/sentrytop_cli.log"
-chmod 644 "$INSTALL_DIR/sentrytop_cli.log"
-
-# Create named pipe for JSON alerts
-rm -f "$INSTALL_DIR/alerts.fifo"
-mkfifo "$INSTALL_DIR/alerts.fifo"
-chmod 666 "$INSTALL_DIR/alerts.fifo"
-
-# Ensure SQLite DB exists and is writable
-touch "$INSTALL_DIR/alerts.db"
-chmod 666 "$INSTALL_DIR/alerts.db"
-
-echo "[3/4] Setting up Python virtual environment..."
-python3 -m venv "$INSTALL_DIR/venv"
-"$INSTALL_DIR/venv/bin/pip" install --upgrade pip --quiet
-"$INSTALL_DIR/venv/bin/pip" install rich psutil blessed --quiet
-
-echo "[4/4] Creating command wrapper..."
-rm -f "$BIN_PATH"
-cat << 'EOF' > "$BIN_PATH"
-#!/bin/bash
-export NOSUDO=1
-source /opt/sentrytop/venv/bin/activate
-exec python3 /opt/sentrytop/ui/main.py "$@"
-EOF
-chmod +x "$BIN_PATH"
-
-echo "=================================================="
-echo "✓ Installation Complete!"
-echo "✓ Run: sudo sentrytop"
-echo "=================================================="
+echo "----------------------------------------------------"
+echo "[SUCCESS] SENTRYTOP v2.0.0 is now installed."
+echo "[INFO] Run with: sudo sentrytop"
+echo "----------------------------------------------------"
