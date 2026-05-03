@@ -1,0 +1,19 @@
+[package]
+name = "sentrytop-ebpf"
+version = "0.1.0"
+edition = "2024"
+autobins = false    
+autolib = true
+
+[dependencies]
+aya-ebpf = { workspace = true }
+aya-log-ebpf = { workspace = true }
+sentrytop-common = { path = "../sentrytop-common" }
+
+[build-dependencies]
+which = { workspace = true }
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/lib.rs" 
+
