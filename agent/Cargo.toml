@@ -2,29 +2,28 @@
 name = "sentrytop-agent"
 version = "0.1.0"
 edition = "2021"
-authors = ["SentryTop Security Engineering"]
-description = "Professional-grade Unified Rust EDR Agent"
 
 [dependencies]
-# Async runtime
+# Updated Aya Dependencies (matching 0.13.x ecosystem)
+aya = { version = "0.13.0", features = ["async_tokio"] }
+aya-log = "0.2.1"
 tokio = { version = "1.36", features = ["full"] }
 
-# TUI Framework
-ratatui = "0.26"
-crossterm = { version = "0.27", features = ["event-stream"] }
+# Shared Logic
+sentrytop-common = { path = "../common" }
 
-# Telemetry & System Info
-sysinfo = "0.30"
-
-# Database & Serialization
+# Data & Logging
 rusqlite = { version = "0.31", features = ["bundled"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-
-# Utilities
 chrono = { version = "0.4", features = ["serde"] }
+
+# Performance & Utils
 anyhow = "1.0"
-log = "0.4"
 env_logger = "0.11"
-futures = "0.3"
-color-eyre = "0.6"
+log = "0.4"
+futures-util = "0.3"
+nix = { version = "0.28", features = ["signal", "process"] }
+uuid = { version = "1.7", features = ["v4"] }
+sha2 = "0.10"
+lru = "0.12"
